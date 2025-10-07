@@ -1,30 +1,43 @@
 {
-  "name": "scriptgenius-ai-simple",
+  "name": "scriptgenius-ai-react",
   "version": "1.0.0",
-  "description": "Simple HTML + Server for ScriptGenius.ai video processing",
-  "main": "simple-server.js",
+  "description": "React.js app for ScriptGenius.ai video processing with n8n integration",
+  "type": "module",
   "scripts": {
     "setup": "node setup.js",
-    "start": "node simple-server.js",
-    "dev": "nodemon simple-server.js"
+    "dev": "vite --port 3001",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "cross-env PORT=3002 node server.js",
+    "start": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1"
+    "form-data": "^4.0.0",
+    "multer": "^1.4.5-lts.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.0.1",
+    "vite": "^5.0.8"
   },
   "keywords": [
     "video",
     "transcription",
     "ai",
     "script-generation",
-    "html",
-    "simple"
+    "react",
+    "n8n",
+    "webhook"
   ],
   "author": "ScriptGenius.ai",
   "license": "MIT"
