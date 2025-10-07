@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname));
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -18,7 +19,6 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
@@ -26,32 +26,28 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit
-  },
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
   fileFilter: (req, file, cb) => {
-    // Check if file is a video
-    if (file.mimetype.startsWith('video/')) {
+    if (file.mimetype === 'video/mp4' || file.originalname.toLowerCase().endsWith('.mp4')) {
       cb(null, true);
     } else {
-      cb(new Error('Only video files are allowed!'), false);
+      cb(new Error('Only MP4 video files are allowed!'), false);
     }
   }
 });
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static('uploads'));
-
-// Serve static files from Next.js build
-app.use(express.static(path.join(__dirname, 'client/.next/static')));
-app.use(express.static(path.join(__dirname, 'client/out')));
+// Create uploads directory if it doesn't exist
+const fs = require('fs');
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Main upload endpoint
+// Main upload endpoint - connects to n8n
 app.post('/api/upload', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -70,7 +66,7 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
     // Prepare form data for n8n webhook
     const FormData = require('form-data');
     const formData = new FormData();
-    formData.append('video', require('fs').createReadStream(req.file.path), {
+    formData.append('video', fs.createReadStream(req.file.path), {
       filename: req.file.originalname,
       contentType: req.file.mimetype
     });
@@ -79,16 +75,14 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
 
     // Send file to n8n webhook
     const n8nResponse = await axios.post(process.env.N8N_WEBHOOK_URL, formData, {
-      headers: {
-        ...formData.getHeaders(),
-      },
+      headers: { ...formData.getHeaders() },
       timeout: 300000, // 5 minute timeout
     });
 
     console.log('Received response from n8n:', n8nResponse.data);
 
     // Clean up uploaded file
-    require('fs').unlinkSync(req.file.path);
+    fs.unlinkSync(req.file.path);
 
     // Return the response from n8n
     res.json(n8nResponse.data);
@@ -97,8 +91,8 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
     console.error('Error processing video:', error);
 
     // Clean up uploaded file if it exists
-    if (req.file && require('fs').existsSync(req.file.path)) {
-      require('fs').unlinkSync(req.file.path);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
     }
 
     // Handle different types of errors
@@ -106,8 +100,8 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
       return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
     }
 
-    if (error.message === 'Only video files are allowed!') {
-      return res.status(400).json({ error: 'Only video files are allowed.' });
+    if (error.message === 'Only MP4 video files are allowed!') {
+      return res.status(400).json({ error: 'Only MP4 video files are allowed.' });
     }
 
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
@@ -128,9 +122,14 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
   }
 });
 
-// Catch-all handler for Next.js pages
+// Serve the HTML file
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'scriptgenius-standalone.html'));
+});
+
+// Catch-all handler
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/out/index.html'));
+  res.sendFile(path.join(__dirname, 'scriptgenius-standalone.html'));
 });
 
 // Error handling middleware
@@ -139,13 +138,8 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Create uploads directory if it doesn't exist
-const fs = require('fs');
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Open: http://localhost:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
 });

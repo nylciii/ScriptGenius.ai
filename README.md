@@ -1,217 +1,145 @@
-# ScriptGenius.ai
+# ScriptGenius.ai - HTML Version
 
-A full-stack web application for video transcription and AI-powered script generation using n8n workflows.
+A simple HTML interface for video transcription and script generation with n8n integration.
 
-## Features
+## 🚀 Quick Start
 
-- 🎥 **Video Upload**: Upload video files up to 100MB
-- 🎯 **AI Transcription**: Automatic speech-to-text conversion
-- 📝 **Script Generation**: AI-generated scripts for different formats
-- 🎨 **Clean UI**: Bootstrap-styled responsive interface
-- ⚡ **Real-time Processing**: Live progress indicators and error handling
+### Option 1: With n8n Integration (Recommended)
+1. **Install dependencies**: `npm install`
+2. **Setup environment**: `node setup.js`
+3. **Configure n8n**: Edit `.env` file with your n8n webhook URL
+4. **Start server**: `npm start`
+5. **Open browser**: `http://localhost:3001`
 
-## Tech Stack
+### Option 2: Standalone Demo
+1. **Open file**: Double-click `scriptgenius-standalone.html`
+2. **That's it!** (Demo mode only - no real processing)
 
-- **Frontend**: Next.js 15 with React 19, Bootstrap 5, TypeScript
-- **Backend**: Node.js with Express.js
-- **File Upload**: Multer for multipart form handling
-- **AI Processing**: n8n workflow integration
-- **Styling**: Bootstrap 5 with custom CSS
+## ✨ Features
 
-## Prerequisites
+- **Pure HTML**: Single file with embedded CSS and JavaScript
+- **No Dependencies**: Works offline, no server required
+- **Responsive Design**: Beautiful UI that works on all devices
+- **Drag & Drop**: Easy file upload with drag and drop support
+- **File Validation**: MP4 video files only, 100MB max size
+- **Demo Mode**: Shows example results for demonstration
+- **Modern UI**: Gradient design with smooth animations
 
-- Node.js 18+ 
-- npm or yarn
-- n8n instance with webhook endpoint configured
+## 🎯 How to Use
 
-## Quick Start
+1. **Open the HTML file** in your web browser
+2. **Select a video file** (MP4 format, max 100MB)
+3. **Click "Transcribe & Generate Scripts"**
+4. **View the results** - transcript and generated scripts
 
-### 1. Clone and Install Dependencies
-
-```bash
-# Install root dependencies
-npm install
-
-# Install client dependencies
-cd client
-npm install
-cd ..
-```
-
-### 2. Environment Configuration
-
-Create a `.env` file in the root directory:
-
-```env
-# Server Configuration
-PORT=3001
-
-# n8n Webhook Configuration
-N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/transcribe-and-script
-```
-
-### 3. n8n Workflow Setup
-
-Your n8n workflow should:
-
-1. **Receive webhook** with video file
-2. **Transcribe video** using Whisper or similar ASR API
-3. **Generate scripts** using an LLM (GPT, Claude, etc.)
-4. **Return JSON response** in this format:
-
-```json
-{
-  "transcript": "The transcribed text from the video",
-  "scripts": [
-    {
-      "title": "Short Social Post",
-      "content": "Generated social media post content..."
-    },
-    {
-      "title": "1-Minute Explainer",
-      "content": "Generated explainer video script..."
-    },
-    {
-      "title": "Blog Intro",
-      "content": "Generated blog introduction..."
-    }
-  ]
-}
-```
-
-### 4. Run the Application
-
-```bash
-# Start both frontend and backend
-npm run dev
-```
-
-This will start:
-- Backend server on `http://localhost:3001`
-- Frontend on `http://localhost:3000`
-
-### 5. Access the Application
-
-Open your browser and navigate to `http://localhost:3000`
-
-## Development
-
-### Project Structure
+## 📁 File Structure
 
 ```
 ScriptGenius.ai/
-├── client/                 # Next.js frontend
-│   ├── src/
-│   │   └── app/
-│   │       ├── page.tsx    # Main upload page
-│   │       ├── layout.tsx  # Root layout
-│   │       └── globals.css # Global styles
-│   ├── next.config.js      # Next.js configuration
-│   └── package.json
-├── uploads/                # Temporary file storage
-├── server.js              # Express backend
-├── package.json           # Root dependencies
-└── README.md
+├── scriptgenius-standalone.html    # Main HTML file (everything included)
+├── README.md                       # This file
+└── env.example                     # Environment variables template (for reference)
 ```
 
-### Available Scripts
+## 🔧 Customization
 
-- `npm run dev` - Start both frontend and backend in development mode
-- `npm run client` - Start only the frontend
-- `npm run server` - Start only the backend
-- `npm run build` - Build the frontend for production
-- `npm start` - Start production server
+To integrate with your own video processing API:
 
-### API Endpoints
+1. **Open** `scriptgenius-standalone.html`
+2. **Find** the `handleSubmit` function in the JavaScript section
+3. **Replace** the demo simulation with your API call:
 
-- `GET /api/health` - Health check endpoint
-- `POST /api/upload` - Video upload and processing endpoint
+```javascript
+// Replace this demo code:
+setTimeout(() => {
+    const mockResult = { /* demo data */ };
+    showResults(mockResult);
+    setLoading(false);
+}, 3000);
 
-## Configuration
+// With your API call:
+const formData = new FormData();
+formData.append('video', selectedFile);
 
-### Environment Variables
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `PORT` | Backend server port | No | 3001 |
-| `N8N_WEBHOOK_URL` | n8n webhook endpoint URL | Yes | - |
-
-### File Upload Limits
-
-- Maximum file size: 100MB
-- Supported formats: All video formats (`video/*`)
-- Files are temporarily stored in `uploads/` directory
-
-## Error Handling
-
-The application includes comprehensive error handling for:
-
-- File upload errors (size, format, network)
-- n8n workflow errors (timeout, connection, processing)
-- Frontend validation errors
-- Network connectivity issues
-
-## Production Deployment
-
-### 1. Build the Application
-
-```bash
-npm run build
+fetch('YOUR_API_ENDPOINT', {
+    method: 'POST',
+    body: formData
+})
+.then(response => response.json())
+.then(result => {
+    showResults(result);
+    setLoading(false);
+})
+.catch(error => {
+    showError('Error processing video: ' + error.message);
+    setLoading(false);
+});
 ```
 
-### 2. Environment Setup
+## 🌐 Browser Compatibility
 
-Ensure your production environment has:
-- Node.js 18+
-- Proper `.env` configuration
-- n8n webhook endpoint accessible
+- ✅ Chrome 60+
+- ✅ Firefox 55+
+- ✅ Safari 12+
+- ✅ Edge 79+
+- ✅ Mobile browsers
 
-### 3. Start Production Server
+## 🎨 Styling
 
-```bash
-npm start
-```
+The HTML file includes all CSS embedded in the `<style>` section. You can customize:
 
-## Troubleshooting
+- **Colors**: Modify the CSS variables in `:root`
+- **Fonts**: Change the Google Fonts imports
+- **Layout**: Adjust Bootstrap classes and custom CSS
+- **Animations**: Modify the CSS animations and transitions
 
-### Common Issues
+## 📱 Mobile Friendly
 
-1. **"N8N webhook URL not configured"**
-   - Ensure `N8N_WEBHOOK_URL` is set in your `.env` file
+The design is fully responsive and works great on:
+- Desktop computers
+- Tablets
+- Mobile phones
+- All screen sizes
 
-2. **"Unable to connect to n8n service"**
-   - Check if your n8n instance is running
-   - Verify the webhook URL is correct
-   - Ensure network connectivity
+## 🔒 Security
 
-3. **"File too large"**
-   - Video files must be under 100MB
-   - Consider compressing large videos
+- **Client-side only**: No server-side processing
+- **File validation**: MP4 format and size limits
+- **XSS protection**: HTML escaping for user content
+- **No data storage**: Files are processed in memory only
 
-4. **"Request timeout"**
-   - Video processing took longer than 5 minutes
-   - Check n8n workflow performance
-   - Consider using smaller video files
+## 🚀 Deployment
 
-### Debug Mode
+To deploy this HTML file:
 
-Enable debug logging by setting `NODE_ENV=development` in your `.env` file.
+1. **Web Server**: Upload to any web server (Apache, Nginx, etc.)
+2. **CDN**: Host on any CDN (Cloudflare, AWS CloudFront, etc.)
+3. **Static Hosting**: Deploy to GitHub Pages, Netlify, Vercel, etc.
+4. **Local**: Just open the file directly in a browser
 
-## Contributing
+## 💡 Tips
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+- **File Size**: Keep videos under 100MB for best performance
+- **Format**: Only MP4 files are supported
+- **Browser**: Use a modern browser for best experience
+- **Offline**: Works completely offline (except for Google Fonts)
 
-## License
+## 🆚 vs Original Version
 
-MIT License - see LICENSE file for details.
+| Feature | Original (Next.js) | Pure HTML |
+|---------|-------------------|-----------|
+| Setup | Complex (Node.js, npm) | None |
+| Dependencies | Many | None |
+| File Size | Large | Single file |
+| Server Required | Yes | No |
+| Offline | No | Yes |
+| Deployment | Complex | Simple |
+| Customization | Complex | Easy |
 
-## Support
+## 📞 Support
 
-For issues and questions:
-- Check the troubleshooting section
-- Review n8n workflow configuration
-- Ensure all dependencies are properly installed
+This is a pure HTML file - no server, no dependencies, no complex setup. If you need help customizing it, just edit the HTML file directly!
+
+---
+
+**ScriptGenius.ai** - Transform your videos into powerful content with AI! ✨
