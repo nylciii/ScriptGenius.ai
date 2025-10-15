@@ -30,8 +30,9 @@ function App() {
 
   return (
     <div className="container py-5">
+      <div className="spotlight" />
       <div className="row justify-content-center">
-        <div className="col-lg-8">
+        <div className="col-lg-10 col-xl-8">
           <Header />
           
           <VideoUpload 
@@ -44,7 +45,7 @@ function App() {
 
           {error && (
             <div className="alert alert-danger fade-in">
-              <h5 className="alert-heading">Error</h5>
+              <h5 className="alert-heading">⚠️ Error</h5>
               <p className="mb-0">{error}</p>
             </div>
           )}

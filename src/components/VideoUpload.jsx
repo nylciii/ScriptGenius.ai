@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { uploadVideo, testConnection } from '../services/api'
+import { uploadVideo } from '../services/api'
 
 const VideoUpload = ({ onUploadSuccess, onUploadError, onLoadingChange, isLoading, onReset }) => {
   const [selectedFile, setSelectedFile] = useState(null)
@@ -93,20 +93,20 @@ const VideoUpload = ({ onUploadSuccess, onUploadError, onLoadingChange, isLoadin
 
   const handleDragOver = (event) => {
     event.preventDefault()
-    event.currentTarget.style.borderColor = 'var(--primary-gold)'
-    event.currentTarget.style.background = 'rgba(252, 187, 109, 0.1)'
+    event.currentTarget.style.borderColor = 'var(--caramel)'
+    event.currentTarget.style.background = 'var(--pale-beige)'
   }
 
   const handleDragLeave = (event) => {
     event.preventDefault()
-    event.currentTarget.style.borderColor = 'var(--primary-rose)'
-    event.currentTarget.style.background = 'rgba(252, 187, 109, 0.05)'
+    event.currentTarget.style.borderColor = 'var(--milk-brown)'
+    event.currentTarget.style.background = 'var(--warm-cream)'
   }
 
   const handleDrop = (event) => {
     event.preventDefault()
-    event.currentTarget.style.borderColor = 'var(--primary-rose)'
-    event.currentTarget.style.background = 'rgba(252, 187, 109, 0.05)'
+    event.currentTarget.style.borderColor = 'var(--milk-brown)'
+    event.currentTarget.style.background = 'var(--warm-cream)'
     
     const files = event.dataTransfer.files
     if (files.length > 0) {
@@ -140,21 +140,24 @@ const VideoUpload = ({ onUploadSuccess, onUploadError, onLoadingChange, isLoadin
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               style={{
-                border: '2px dashed var(--primary-rose)',
-                background: 'rgba(252, 187, 109, 0.05)',
-                transition: 'all 0.3s ease'
+                border: '2px dashed var(--milk-brown)',
+                background: 'var(--warm-cream)',
+                transition: 'all 0.3s ease',
+                textAlign: 'center',
+                padding: '2rem 1rem'
               }}
             />
-            <div className="form-text" style={{ color: 'var(--primary-slate)', fontSize: '0.95rem' }}>
+            <div className="form-text" style={{ color: 'var(--warm-brown)', fontSize: '0.95rem', textAlign: 'center' }}>
               Supported format: MP4 video files only. Max size: 100MB
             </div>
             {fileInfo && (
               <div className="mt-3 p-3" style={{
                 background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-                borderRadius: '0.75rem',
-                border: '1px solid #4caf50'
+                borderRadius: '1rem',
+                border: '2px solid var(--warm-brown)',
+                textAlign: 'center'
               }}>
-                <small className="d-flex align-items-center" style={{ color: '#2e7d32', fontWeight: '500' }}>
+                <small className="d-flex align-items-center justify-content-center" style={{ color: 'var(--warm-brown)', fontWeight: '500' }}>
                   <span style={{ marginRight: '0.5rem' }}>✅</span>
                   Selected: {fileInfo.name} ({fileInfo.size})
                 </small>
@@ -181,36 +184,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError, onLoadingChange, isLoadin
               )}
             </button>
             
-            <button 
-              type="button" 
-              className="btn btn-outline-secondary btn-sm" 
-              onClick={() => {
-                console.log('Test button clicked')
-                console.log('Selected file:', selectedFile)
-                console.log('File info:', fileInfo)
-                console.log('Is loading:', isLoading)
-              }}
-            >
-              🔍 Debug Info (Check Console)
-            </button>
-            
-            <button 
-              type="button" 
-              className="btn btn-outline-info btn-sm" 
-              onClick={async () => {
-                try {
-                  console.log('Testing API connection...')
-                  const result = await testConnection()
-                  console.log('API test successful:', result)
-                  alert('API connection successful! Check console for details.')
-                } catch (error) {
-                  console.error('API test failed:', error)
-                  alert('API connection failed! Check console for details.')
-                }
-              }}
-            >
-              🔗 Test API Connection
-            </button>
+            {/* Debug and test buttons removed per request */}
           </div>
         </form>
       </div>
