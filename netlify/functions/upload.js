@@ -1,6 +1,5 @@
 import axios from 'axios'
 import FormData from 'form-data'
-import multipart from 'lambda-multipart-parser'
 
 // Utility to stringify and sanitize any value into human-readable text
 const toCleanText = (value) => {
@@ -81,6 +80,50 @@ const deepFindOpenAIContent = (obj) => {
   return undefined
 }
 
+// Simple multipart parser for Netlify functions
+const parseMultipart = (event) => {
+  const contentType = event.headers['content-type'] || event.headers['Content-Type']
+  if (!contentType || !contentType.includes('multipart/form-data')) {
+    throw new Error('Content-Type must be multipart/form-data')
+  }
+
+  const boundary = contentType.split('boundary=')[1]
+  if (!boundary) {
+    throw new Error('Invalid multipart data - no boundary found')
+  }
+
+  const body = Buffer.from(event.body, event.isBase64Encoded ? 'base64' : 'utf8')
+  const parts = body.toString('binary').split(`--${boundary}`)
+  
+  for (const part of parts) {
+    if (part.includes('name="video"')) {
+      const headerEnd = part.indexOf('\r\n\r\n')
+      if (headerEnd === -1) continue
+      
+      const headers = part.substring(0, headerEnd)
+      const content = part.substring(headerEnd + 4)
+      
+      // Extract filename and content type from headers
+      const filenameMatch = headers.match(/filename="([^"]+)"/)
+      const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/)
+      
+      const filename = filenameMatch ? filenameMatch[1] : 'video.mp4'
+      const fileContentType = contentTypeMatch ? contentTypeMatch[1].trim() : 'video/mp4'
+      
+      // Convert content back to buffer
+      const fileBuffer = Buffer.from(content, 'binary')
+      
+      return {
+        filename,
+        contentType: fileContentType,
+        content: fileBuffer
+      }
+    }
+  }
+  
+  throw new Error('No video file found in multipart data')
+}
+
 export const handler = async (event, context) => {
   // Set CORS headers
   const headers = {
@@ -120,17 +163,7 @@ export const handler = async (event, context) => {
     }
 
     // Parse multipart form data
-    const parsed = await multipart.parse(event)
-    
-    if (!parsed.files || !parsed.files.video) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'No video file uploaded' })
-      }
-    }
-
-    const videoFile = parsed.files.video
+    const videoFile = parseMultipart(event)
     
     // Validate file type
     if (!videoFile.contentType.includes('video/mp4') && !videoFile.filename.toLowerCase().endsWith('.mp4')) {
@@ -153,7 +186,7 @@ export const handler = async (event, context) => {
     // Create form data for n8n
     const formData = new FormData()
     formData.append('video', videoFile.content, {
-      filename: videoFile.filename || 'video.mp4',
+      filename: videoFile.filename,
       contentType: videoFile.contentType
     })
 
@@ -263,7 +296,17 @@ export const handler = async (event, context) => {
       code: error.code,
       status: error.response?.status,
       statusText: error.response?.statusText,
-      data: error.response?.data
+      data: error.response?.data,
+      stack: error.stack
+    })
+
+    // Log the event for debugging
+    console.error('Event details:', {
+      httpMethod: event.httpMethod,
+      headers: event.headers,
+      hasBody: !!event.body,
+      bodyLength: event.body ? event.body.length : 0,
+      isBase64Encoded: event.isBase64Encoded
     })
 
     // Handle different types of errors
